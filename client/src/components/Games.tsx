@@ -6,12 +6,14 @@ type Props = {
 
 function Games({ games }: Props) {
   return games ? (
-    games.map((game) => (
-      <div className="d-flex mb-3">
-        <img src={game.cover.url} height={200} width={112} />
-        <p>{game.name}</p>
-      </div>
-    ))
+    <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3">
+      {games.map((game) => (
+        <section className="col">
+          <img className="game-card" src={game.cover.url} width="100%" />
+          <p>{game.name}</p>
+        </section>
+      ))}
+    </div>
   ) : (
     <p>No Games</p>
   );

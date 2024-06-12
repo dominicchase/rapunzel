@@ -1,37 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { Game } from "./types/Games.types";
-import Games from "./components/Games";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Backlog from "./components/Backlog";
+import Auth from "./components/Auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
 function App() {
-  const [search, setSearch] = useState("");
-  const [games, setGames] = useState<Game[] | undefined>([]);
-
-  useEffect(() => {
-    if (search)
-      fetch(`http://localhost:3001/api/games?search=${search}`)
-        .then((res) => res.json())
-        .then((data) => setGames(data));
-  }, [search]);
-
   return (
-    <>
-      <h3>Rapunzel</h3>
-
-      <input
-        name="search"
-        value={search}
-        onChange={(event) => handleChange(event)}
-      />
-
-      <Games games={games} />
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Backlog />} />
+        <Route path="/auth" element={<Auth />} />
+      </Routes>
+    </Router>
   );
-
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setSearch(event.target.value);
-  }
 }
 
 export default App;
