@@ -1,35 +1,29 @@
 import { useState } from "react";
-import { RegisterRequestBody } from "../types/auth.types";
+import { LoginRequestBody } from "../types/auth.types";
 
 type Props = {
-  handleRegister: ({ email, password }: RegisterRequestBody) => void;
+  handleLogin: ({ email, password }: LoginRequestBody) => void;
   newUserHandler: () => void;
 };
 
 const initialData = {
   email: "",
   password: "",
-  confirmPassword: "",
 };
 
-function Register({ handleRegister, newUserHandler }: Props) {
+function Login({ handleLogin, newUserHandler }: Props) {
   const [form, setForm] = useState(initialData);
 
   return (
     <>
-      <h3 className="text-start mb-4">Register</h3>
+      <h3 className="text-start mb-4">Login</h3>
 
       <form className="d-block mb-4">
         {[
           { label: "Email", name: "email", value: form.email },
           { label: "Password", name: "password", value: form.password },
-          {
-            label: "Confirm Password",
-            name: "confirmPassword",
-            value: form.confirmPassword,
-          },
         ].map((element) => (
-          <section className="mb-3">
+          <section className="mb-3" key={element.name}>
             <p className="text-start mb-2">{element.label}</p>
             <input
               className="w-100"
@@ -43,17 +37,17 @@ function Register({ handleRegister, newUserHandler }: Props) {
         <button
           onClick={(e) => {
             e.preventDefault();
-            handleRegister(form);
+            handleLogin(form);
           }}
         >
-          Register
+          Login
         </button>
       </form>
 
       <p>
-        Already have an account?&nbsp;
+        Don&apos;t have an account?&nbsp;
         <button className="btn-no-bg" onClick={newUserHandler}>
-          Login
+          Register
         </button>
       </p>
     </>
@@ -65,4 +59,4 @@ function Register({ handleRegister, newUserHandler }: Props) {
   }
 }
 
-export default Register;
+export default Login;

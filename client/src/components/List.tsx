@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Game } from "../types/Games.types";
 import Modal from "./Modal";
 import AddGame from "./AddGame";
@@ -9,7 +10,12 @@ type Props = {
 };
 
 function List({ title, games }: Props) {
+  const navigate = useNavigate();
+
   const [show, setShow] = useState(false);
+
+  // TODO: extract this and handle refreshToken logic
+  const isLoggedIn = localStorage.getItem("accessToken");
 
   return (
     <section>
@@ -23,7 +29,11 @@ function List({ title, games }: Props) {
   );
 
   function handleAddGame() {
-    setShow(true);
+    if (!isLoggedIn) {
+      navigate("/auth");
+    } else {
+      setShow(true);
+    }
   }
 }
 

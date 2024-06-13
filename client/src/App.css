@@ -36,3 +36,10 @@
 .game-card {
   aspect-ratio: 2 / 3;
 }
+
+.btn-no-bg {
+  background: none;
+  border: 0;
+  color: teal;
+  padding: 0;
+}
