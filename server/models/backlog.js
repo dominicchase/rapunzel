@@ -6,27 +6,31 @@ const backlogSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  gameId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Game",
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["not started", "in progress", "completed"],
-    default: "not started",
-  },
-  addedAt: {
-    type: Date,
-    default: Date.now,
-  },
-  completedAt: {
-    type: Date,
-  },
-  lastModified: {
-    type: Date,
-    default: Date.now,
-  },
+  userBacklog: [
+    {
+      gameId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Game",
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ["not started", "in progress", "completed"],
+        default: "not started",
+      },
+      addedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      completedAt: {
+        type: Date,
+      },
+      lastModified: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 
 backlogSchema.pre("save", function (next) {
@@ -34,4 +38,5 @@ backlogSchema.pre("save", function (next) {
   next();
 });
 
-exports.Backlog = mongoose.model("Backlog", backlogSchema);
+const Backlog = mongoose.model("Backlog", backlogSchema);
+module.exports = { Backlog };

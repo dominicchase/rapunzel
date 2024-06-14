@@ -65,7 +65,7 @@ async function login(req, res) {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.status(200).json({ accessToken, refreshToken });
+    res.status(200).json({ id: user.id, accessToken, refreshToken });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

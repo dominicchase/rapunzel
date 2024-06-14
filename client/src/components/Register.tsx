@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { register } from "../api/POST";
 import { RegisterRequestBody } from "../types/auth.types";
 
 type Props = {
-  handleRegister: ({ email, password }: RegisterRequestBody) => void;
   newUserHandler: () => void;
 };
 
@@ -12,7 +13,9 @@ const initialData = {
   confirmPassword: "",
 };
 
-function Register({ handleRegister, newUserHandler }: Props) {
+function Register({ newUserHandler }: Props) {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState(initialData);
 
   return (
@@ -40,14 +43,7 @@ function Register({ handleRegister, newUserHandler }: Props) {
           </section>
         ))}
 
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            handleRegister(form);
-          }}
-        >
-          Register
-        </button>
+        <button onClick={(e) => handleRegister(e, form)}>Register</button>
       </form>
 
       <p>
@@ -58,6 +54,17 @@ function Register({ handleRegister, newUserHandler }: Props) {
       </p>
     </>
   );
+
+  function handleRegister(
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    { email, password }: RegisterRequestBody
+  ) {
+    e.preventDefault();
+
+    register({ email, password }).then(() => {
+      navigate("/");
+    });
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;

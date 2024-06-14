@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../api/POST";
 import { LoginRequestBody } from "../types/auth.types";
 
 type Props = {
-  handleLogin: ({ email, password }: LoginRequestBody) => void;
   newUserHandler: () => void;
 };
 
@@ -11,7 +12,9 @@ const initialData = {
   password: "",
 };
 
-function Login({ handleLogin, newUserHandler }: Props) {
+function Login({ newUserHandler }: Props) {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState(initialData);
 
   return (
@@ -34,14 +37,7 @@ function Login({ handleLogin, newUserHandler }: Props) {
           </section>
         ))}
 
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            handleLogin(form);
-          }}
-        >
-          Login
-        </button>
+        <button onClick={(e) => handleLogin(e, form)}>Login</button>
       </form>
 
       <p>
@@ -52,6 +48,17 @@ function Login({ handleLogin, newUserHandler }: Props) {
       </p>
     </>
   );
+
+  function handleLogin(
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    { email, password }: LoginRequestBody
+  ) {
+    e.preventDefault();
+
+    login({ email, password }).then(() => {
+      navigate("/");
+    });
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;

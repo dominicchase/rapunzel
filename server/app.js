@@ -24,7 +24,7 @@ mongoose
   });
 
 // import routes
-const routes = ["backlog", "game", "user"];
+const routes = ["game", "user", "backlog"];
 
 routes.forEach((route) => {
   const path = require(`./routes/${route}`);
