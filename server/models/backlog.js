@@ -8,26 +8,60 @@ const backlogSchema = new mongoose.Schema({
   },
   userBacklog: [
     {
-      gameId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Game",
+      id: {
+        type: Number,
+        required: true,
+        unique: true, // Ensure that each game from IGDB is only stored once
+      },
+      cover: {
+        id: {
+          type: Number,
+          requred: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
+      },
+      first_release_date: {
+        type: Date,
         required: true,
       },
+      genres: [
+        {
+          id: {
+            type: Number,
+            required: true,
+          },
+          name: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
+      name: {
+        type: String,
+        required: true,
+      },
+      platforms: [
+        {
+          id: { type: Number, required: true },
+          name: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
       status: {
         type: String,
-        enum: ["not started", "in progress", "completed"],
+        enum: ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"],
         default: "not started",
       },
-      addedAt: {
+      startedAt: {
         type: Date,
-        default: Date.now,
       },
       completedAt: {
         type: Date,
-      },
-      lastModified: {
-        type: Date,
-        default: Date.now,
       },
     },
   ],
