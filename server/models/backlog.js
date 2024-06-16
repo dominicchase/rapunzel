@@ -57,9 +57,9 @@ const backlogSchema = new mongoose.Schema({
         enum: ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"],
         default: "not started",
       },
-      startedAt: {
-        type: Date,
-      },
+      // startedAt: {
+      //   type: Date,
+      // },
       completedAt: {
         type: Date,
       },

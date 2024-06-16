@@ -5,6 +5,7 @@ const {
   addToBacklog,
   getBacklog,
   removeFromBacklog,
+  updateBacklog,
 } = require("../controllers/backlog");
 
 router.get("/", getBacklog);
@@ -12,5 +13,7 @@ router.get("/", getBacklog);
 router.post("/add", authMiddleware, addToBacklog);
 
 router.delete("/delete", authMiddleware, removeFromBacklog);
+
+router.patch("/update", authMiddleware, updateBacklog);
 
 module.exports = router;

@@ -6,6 +6,7 @@ module.exports = {
   getBacklog,
   addToBacklog,
   removeFromBacklog,
+  updateBacklog,
 };
 
 async function getBacklog(req, res) {
@@ -15,50 +16,53 @@ async function getBacklog(req, res) {
     const page = req.query.page || 0;
     const size = req.query.size || 10;
 
-    console.log({ userId, type, page, size });
-
     if (!userId) {
       return res
         .status(400)
         .json({ message: "User ID and Game ID are required" });
     }
 
-    const backlog = await Backlog.find({ userId });
+    const backlog = await Backlog.findOne({ userId });
 
-    // TODO: return paginated response using sort and slice
+    const filteredBacklog = backlog.userBacklog.filter(
+      (game) => game.status === type
+    );
 
-    // // find the user's backlog document by userId
-    // const allGamesInBacklog = await Backlog.find({ userId })
-    //   .sort({ name: "ascending" })
-    //   .skip(page * size);
+    // TODO: sorting options
 
-    // // find the user's backlog document by userId
-    // const limitedGamesInBacklog = await Backlog.find({ userId })
-    //   .sort({ name: "ascending" })
-    //   .skip(page * size)
-    //   .limit(size);
+    const sortedBacklog = filteredBacklog.sort((a, b) =>
+      a.name < b.name ? -1 : 1
+    );
 
-    // const totalGames = allGamesInBacklog.length;
-    // const totalPages = Math.ceil(totalGames / size);
+    // pagination
+    const start = page * size;
+    const end = start + size;
+    const backlogSlice = sortedBacklog.slice(start, end);
 
-    // res.status(200).send({
-    //   backlog: limitedGamesInBacklog,
-    //   page: +page,
-    //   totalPages: +totalPages,
-    //   totalGames: +totalGames,
-    // });
+    return res.json({
+      data: backlogSlice,
+      totalItems: filteredBacklog.length,
+      totalPages: Math.ceil(filteredBacklog.length / size),
+    });
   } catch (error) {}
 }
 
 async function addToBacklog(req, res) {
   try {
-    const { userId, gameId, status, startedAt, completedAt } = req.body;
+    const { userId, gameId, status } = req.body;
 
-    // Validate request data
-    if (!userId || !gameId || !status || (!startedAt && !completedAt)) {
+    // validate request data
+    if (!userId || !gameId || !status) {
       return res
         .status(400)
-        .json({ message: "User ID and Game ID are required" });
+        .json({ message: "User ID, Game ID, and status are required" });
+    }
+
+    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"];
+
+    // validate the status
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
     }
 
     // Find the user's backlog document by userId
@@ -85,8 +89,7 @@ async function addToBacklog(req, res) {
           backlog.userBacklog.push({
             ...game,
             status,
-            ...(startedAt && { startedAt }),
-            ...(completedAt && { completedAt }),
+            completedAt: status === "COMPLETED" ? Date.now() : null,
           });
 
           await backlog.save();
@@ -142,6 +145,79 @@ async function removeFromBacklog(req, res) {
     return res
       .status(200)
       .json({ message: `${existingGame.name} removed from backlog` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function updateBacklog(req, res) {
+  try {
+    const { userId, gameId, status } = req.body;
+
+    if (!userId || !gameId || !status) {
+      return res
+        .status(400)
+        .json({ message: "User ID, Game ID, and status are required" });
+    }
+
+    const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"];
+
+    // validate the status
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    // Find the user's backlog document by userId
+    let backlog = await Backlog.findOne({ userId });
+
+    // If the backlog document doesn't exist, create a new one
+    if (!backlog) {
+      return res.status(400).json({ message: "Backlog not found" });
+    }
+
+    // Check if the game is already in the backlog
+    const existingGame = backlog.userBacklog.find(
+      (entry) => entry.id === gameId
+    );
+
+    if (!existingGame) {
+      return res.status(400).json({ message: "Game is not in backlog" });
+    }
+
+    // Build the update object
+    const updateFields = {
+      "userBacklog.$.status": status,
+    };
+
+    switch (status) {
+      // case "IN_PROGRESS": {
+      //   updateFields["userBacklog.$.startedAt"] = Date.now();
+      //   updateFields["userBacklog.$.completedAt"] = null;
+      //   break;
+      // }
+
+      case "COMPLETED": {
+        updateFields["userBacklog.$.completedAt"] = Date.now();
+        break;
+      }
+
+      default: {
+        // updateFields["userBacklog.$.startedAt"] = null;
+        updateFields["userBacklog.$.completedAt"] = null;
+      }
+    }
+
+    // update the specific game in the user's backlog
+    await Backlog.findOneAndUpdate(
+      { userId, "userBacklog.id": gameId },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    return res
+      .status(200)
+      .json({ message: "Game status updated successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
