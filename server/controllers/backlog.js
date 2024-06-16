@@ -5,6 +5,7 @@ const { Backlog } = require("../models/backlog");
 module.exports = {
   getBacklog,
   addToBacklog,
+  removeFromBacklog,
 };
 
 async function getBacklog(req, res) {
@@ -105,16 +106,44 @@ async function addToBacklog(req, res) {
   }
 }
 
-async function getGameData() {
-  const client_id = process.env.CLIENT_ID;
+async function removeFromBacklog(req, res) {
+  try {
+    const { userId, gameId } = req.body;
 
-  const response = await fetch("https://api.igdb.com/v4/games", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Client-ID": client_id,
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: `search "${search}"; fields name,genres.name,platforms.name,first_release_date,cover.url;`,
-  });
+    if (!userId || !gameId) {
+      return res
+        .status(400)
+        .json({ message: "User ID and Game ID are required" });
+    }
+
+    // Find the user's backlog document by userId
+    let backlog = await Backlog.findOne({ userId });
+
+    // If the backlog document doesn't exist, create a new one
+    if (!backlog) {
+      return res.status(400).json({ message: "User backlog not found" });
+    }
+
+    // Check if the game is already in the backlog
+    const existingGame = backlog.userBacklog.find(
+      (entry) => entry.id === gameId
+    );
+
+    if (!existingGame) {
+      return res.status(400).json({ message: "Game is not in backlog" });
+    }
+
+    backlog.userBacklog = backlog.userBacklog.filter(
+      (game) => game.id !== gameId
+    );
+
+    await backlog.save();
+
+    return res
+      .status(200)
+      .json({ message: `${existingGame.name} removed from backlog` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
