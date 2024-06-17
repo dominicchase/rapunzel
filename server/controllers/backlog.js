@@ -12,7 +12,7 @@ module.exports = {
 async function getBacklog(req, res) {
   try {
     const userId = req.query.userId;
-    const type = req.query.type;
+    const status = req.query.status;
     const page = req.query.page || 0;
     const size = req.query.size || 10;
 
@@ -25,7 +25,7 @@ async function getBacklog(req, res) {
     const backlog = await Backlog.findOne({ userId });
 
     const filteredBacklog = backlog.userBacklog.filter(
-      (game) => game.status === type
+      (game) => game.status === status
     );
 
     // TODO: sorting options
@@ -40,7 +40,7 @@ async function getBacklog(req, res) {
     const backlogSlice = sortedBacklog.slice(start, end);
 
     return res.json({
-      data: backlogSlice,
+      games: backlogSlice,
       totalItems: filteredBacklog.length,
       totalPages: Math.ceil(filteredBacklog.length / size),
     });
