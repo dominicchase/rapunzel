@@ -1,30 +1,26 @@
-import { useEffect, useState } from "react";
+// src/components/List.tsx
+
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "./Modal";
 import AddGame from "./AddGame";
-import { getBacklog } from "../api/POST";
-import { Backlog, Status } from "../types/Backlog.types";
+import useAuth from "../hooks/useAuth";
+import useFetchBacklog from "../hooks/useFetchBacklog";
+import { Status } from "../types/Backlog.types";
+import { addToBacklog } from "../api/POST";
 
 type Props = {
   title: string;
   status: Status;
 };
 
-function List({ title, status }: Props) {
+const List: React.FC<Props> = ({ title, status }) => {
   const navigate = useNavigate();
+  const { isAuthenticated, userId } = useAuth();
 
   const [show, setShow] = useState(false);
-  const [games, setGames] = useState<Backlog[]>([]);
-  const [isFetching, setIsFetching] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  console.log(games);
-
-  // TODO: extract this and handle refreshToken logic
-  const isLoggedIn = localStorage.getItem("accessToken");
+  const { games, isFetching, refetch } = useFetchBacklog(userId, status);
 
   if (isFetching) return null;
 
@@ -32,34 +28,35 @@ function List({ title, status }: Props) {
     <section>
       <h5 className="text-start">{title}</h5>
 
-      {games.length && games.map((game) => <p>{game.name}</p>)}
+      {games.length > 0 &&
+        games.map((game) => <p key={game.id}>{game.name}</p>)}
 
-      <button onClick={handleAddGame}>+ Add a game</button>
+      <button onClick={handleAddGameModal}>+ Add a game</button>
 
       <Modal show={show} setShow={setShow}>
-        <AddGame />
+        <AddGame handleAddGame={handleAddGame} />
       </Modal>
     </section>
   );
 
-  function handleAddGame() {
-    if (!isLoggedIn) {
-      navigate("/auth");
-    } else {
+  function handleAddGameModal() {
+    if (isAuthenticated) {
       setShow(true);
+    } else {
+      navigate("/auth");
     }
   }
 
-  function fetchData() {
-    setIsFetching(true);
-
-    getBacklog({ userId: "6669dc93263696f42059de2e", status })
-      .then((res) => res.data)
-      .then((data) => {
-        setGames(data.games);
-        setIsFetching(false);
-      });
+  function handleAddGame(gameId: number) {
+    addToBacklog({
+      userId: userId as string,
+      gameId,
+      status,
+    }).then(() => {
+      setShow(false);
+      refetch();
+    });
   }
-}
+};
 
 export default List;

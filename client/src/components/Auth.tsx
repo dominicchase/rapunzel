@@ -3,7 +3,7 @@ import Register from "./Register";
 import Login from "./Login";
 
 function Auth() {
-  const [isNewUser, setIsNewUser] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   return isNewUser ? (
     <Register newUserHandler={newUserHandler} />

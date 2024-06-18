@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Game } from "../types/Games.types";
 import Games from "./Games";
+import { Game } from "../types/Games.types";
 
-function AddGame() {
+type Props = {
+  handleAddGame: (gameId: number) => void;
+};
+
+function AddGame({ handleAddGame }: Props) {
   const [search, setSearch] = useState("");
   const [games, setGames] = useState<Game[] | undefined>([]);
 
@@ -22,7 +26,7 @@ function AddGame() {
         onChange={(event) => handleChange(event)}
       />
 
-      <Games games={games} />
+      <Games games={games} handleAddGame={handleAddGame} />
     </>
   );
 

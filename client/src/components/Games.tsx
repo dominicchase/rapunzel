@@ -1,11 +1,11 @@
 import { Game } from "../types/Games.types";
-import { addToBacklog } from "../api/POST";
 
 type Props = {
   games: Game[] | undefined;
+  handleAddGame: (gameId: number) => void;
 };
 
-function Games({ games }: Props) {
+function Games({ games, handleAddGame }: Props) {
   return games ? (
     <div /*className="row row-cols-1 row-cols-md-2 row-cols-lg-3"*/>
       {games.map((game) => (
@@ -14,7 +14,7 @@ function Games({ games }: Props) {
           <section className="col text-start">
             <p className="fw-bold">{game.name}</p>
             {"genres" in game && <p>Genre(s): {getGameGenres(game.genres)}</p>}
-            <button onClick={() => handleAddToBacklog(game.id)}>
+            <button onClick={() => handleAddGame(game.id)}>
               Add to Backlog
             </button>
           </section>
@@ -24,14 +24,6 @@ function Games({ games }: Props) {
   ) : (
     <p>No Games</p>
   );
-
-  function handleAddToBacklog(id: number) {
-    addToBacklog({
-      userId: "6669dc93263696f42059de2e",
-      gameId: id,
-      status: "NOT_STARTED",
-    });
-  }
 
   function getGameGenres(genres: { id: number; name: string }[]) {
     return genres.map((genre) => genre.name).join(", ");

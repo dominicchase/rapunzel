@@ -32,7 +32,7 @@ function Register({ newUserHandler }: Props) {
             value: form.confirmPassword,
           },
         ].map((element) => (
-          <section className="mb-3">
+          <section className="mb-3" key={`${element.name}-field`}>
             <p className="text-start mb-2">{element.label}</p>
             <input
               className="w-100"
