@@ -47,10 +47,9 @@ export function addToBacklog(body: {
 export function getBacklog(params: {
   userId: string;
   status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
-  page?: number;
-  size?: number;
+  page: number;
 }) {
   return axios.get(
-    `${API_URL}/backlog?userId=${params.userId}&status=${params.status}`
+    `${API_URL}/backlog?userId=${params.userId}&status=${params.status}&page=${params.page}`
   );
 }

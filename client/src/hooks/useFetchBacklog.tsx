@@ -1,39 +1,42 @@
-// src/hooks/useFetchBacklog.ts
-
 import { useState, useEffect } from "react";
 import { getBacklog } from "../api/POST";
 import { Backlog, Status } from "../types/Backlog.types";
 
-const useFetchBacklog = (userId: string | null, status: Status) => {
+interface BacklogResponse {
+  games: Backlog[];
+  totalItems: number;
+  totalPages: number;
+}
+
+const useFetchBacklog = (
+  userId: string | null,
+  status: Status,
+  page: number
+) => {
   const [games, setGames] = useState<Backlog[]>([]);
   const [isFetching, setIsFetching] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     if (userId) {
       setIsFetching(true);
-
-      fetchBacklog();
+      fetchBacklog(page);
     }
-  }, [userId, status]);
+  }, [userId, status, page]);
 
-  function fetchBacklog() {
-    getBacklog({ userId: userId as string, status })
-      .then((res) => res.data)
+  function fetchBacklog(page: number) {
+    getBacklog({ userId: userId as string, status, page })
+      .then((res) => res.data as BacklogResponse)
       .then((data) => {
-        setGames(data.games);
+        setGames((prevGames) => [...prevGames, ...data.games]);
         setIsFetching(false);
+        if (data.games.length === 0 || data.games.length < 10) {
+          setHasMore(false);
+        }
       });
   }
 
-  function refetch() {
-    if (userId) {
-      setIsFetching(true);
-
-      fetchBacklog();
-    }
-  }
-
-  return { games, isFetching, refetch };
+  return { games, isFetching, hasMore };
 };
 
 export default useFetchBacklog;

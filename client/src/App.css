@@ -33,13 +33,45 @@
   right: 0;
 }
 
-.game-card {
-  aspect-ratio: 2 / 3;
-}
-
 .btn-no-bg {
   background: none;
   border: 0;
-  color: teal;
+  color: white;
   padding: 0;
 }
+
+.backlog-card {
+  background-color: #151515;
+  border-radius: 5px;
+  height: fit-content;
+  max-height: 100vh;
+  padding: 1.5rem;
+  text-align: start;
+}
+
+.game-img {
+  aspect-ratio: 2 / 3;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.game-card {
+  background-color: #242424;
+  border-radius: 5px;
+  display: flex;
+  gap: 10px;
+  padding: 0.5rem;
+}
+
+.game-column {
+  overflow-y: scroll;
+  max-height: 1000px;
+}
+
+/* 
+A6E1FA
+0E6BA8
+0A2472
+001C55
+00072D
+*/
