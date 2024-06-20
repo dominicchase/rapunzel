@@ -1,21 +1,19 @@
 import List from "./List";
-import { Status } from "../types/Backlog.types";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import useGameLists from "../hooks/useGameLists";
 
 function Backlog() {
+  const { state, dispatch } = useGameLists();
+
   return (
-    <div className="d-flex justify-content-start gap-3">
-      {[
-        { title: "Not Started", status: "NOT_STARTED" },
-        { title: "In Progress", status: "IN_PROGRESS" },
-        { title: "Completed", status: "COMPLETED" },
-      ].map((element) => (
-        <List
-          key={element.title}
-          title={element.title}
-          status={element.status as Status}
-        />
-      ))}
-    </div>
+    <DndProvider backend={HTML5Backend}>
+      <div className="d-flex justify-content-start gap-3">
+        {state.map((list) => (
+          <List key={list.status} list={list} dispatch={dispatch} />
+        ))}
+      </div>
+    </DndProvider>
   );
 }
 

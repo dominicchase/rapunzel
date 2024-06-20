@@ -40,7 +40,7 @@ async function getBacklog(req, res) {
     const backlogSlice = sortedBacklog.slice(start, end);
 
     return res.json({
-      games: backlogSlice,
+      backlog: backlogSlice,
       totalItems: filteredBacklog.length,
       totalPages: Math.ceil(filteredBacklog.length / size),
     });

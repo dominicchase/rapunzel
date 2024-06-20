@@ -1,94 +1,54 @@
-// src/components/List.tsx
-
-import React, { useCallback, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Modal from "./Modal";
-import AddGame from "./AddGame";
-import useAuth from "../hooks/useAuth";
-import useFetchBacklog from "../hooks/useFetchBacklog";
-import { Status } from "../types/Backlog.types";
-import { addToBacklog } from "../api/POST";
-import { Game } from "./Game";
+import React from "react";
+import { GameContainer } from "./GameContainer";
+import { Action, Backlog, Status } from "../types/Backlog.types";
+import { useDrop } from "react-dnd";
+import { List as ListType } from "../hooks/useGameLists";
 
 type Props = {
-  title: string;
-  status: Status;
+  list: ListType;
+  dispatch: React.Dispatch<Action>;
 };
 
-const List: React.FC<Props> = ({ title, status }) => {
-  const navigate = useNavigate();
-  const { isAuthenticated, userId } = useAuth();
-
-  const [show, setShow] = useState(false);
-  const [page, setPage] = useState(0);
-
-  const { games, isFetching, hasMore } = useFetchBacklog(userId, status, page);
-
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  const lastGameElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetching) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setPage((prevPage) => prevPage + 1);
-        }
-      });
-      if (node) observer.current.observe(node);
+const List: React.FC<Props> = ({ list, dispatch }) => {
+  const [, drop] = useDrop({
+    accept: "GAME",
+    drop: (game: Backlog) => {
+      onDrop(game, list.status);
     },
-    [isFetching, hasMore]
-  );
-
-  console.log({ games, isFetching, page });
-
-  if (isFetching && page === 0) return null;
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  });
 
   return (
-    <div className="container">
-      <section className="backlog-card">
-        <h5 className="text-start mb-4">{title}</h5>
+    <div className="backlog-card">
+      <h5 className="text-start mb-4">{getUserFriendlyTitle(list.status)}</h5>
 
-        <div className="game-column">
-          {games.map((game, index) => (
-            <div
-              key={game.id}
-              ref={games.length === index + 1 ? lastGameElementRef : null}
-            >
-              <Game game={game} />
-            </div>
-          ))}
-
-          {isFetching && <p>Loading...</p>}
-        </div>
-
-        <button className="btn-no-bg" onClick={handleAddGameModal}>
-          + Add a game
-        </button>
-
-        <Modal show={show} setShow={setShow}>
-          <AddGame handleAddGame={handleAddGame} />
-        </Modal>
-      </section>
+      <GameContainer games={list.games} drop={drop} />
     </div>
   );
 
-  function handleAddGameModal() {
-    if (isAuthenticated) {
-      setShow(true);
-    } else {
-      navigate("/auth");
+  function onDrop(game: Backlog, status: Status) {
+    if (game.status !== status) {
+      dispatch({
+        type: "UPDATE_BACKLOG",
+        gameId: game.id,
+        status,
+      });
     }
   }
 
-  function handleAddGame(gameId: number) {
-    addToBacklog({
-      userId: userId as string,
-      gameId,
-      status,
-    }).then(() => {
-      setShow(false);
-    });
+  function getUserFriendlyTitle(status: Status) {
+    switch (status) {
+      case Status.NOT_STARTED:
+        return "Not Started";
+
+      case Status.IN_PROGRESS:
+        return "In Progress";
+
+      default:
+        return "Completed";
+    }
   }
 };
 
