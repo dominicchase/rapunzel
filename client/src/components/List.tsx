@@ -1,19 +1,24 @@
-import React from "react";
-import { GameContainer } from "./GameContainer";
-import { Action, Backlog, Status } from "../types/Backlog.types";
+import React, { useState } from "react";
 import { useDrop } from "react-dnd";
-import { List as ListType } from "../hooks/useGameLists";
+import { GameContainer } from "./GameContainer";
+import { useBacklogQuery } from "../api/queries/backlogQueries";
+import { Backlog, Status } from "../types/Backlog.types";
+import { useBacklogMutations } from "../api/queries/backlogMutations";
 
 type Props = {
-  list: ListType;
-  dispatch: React.Dispatch<Action>;
+  status: Status;
 };
 
-const List: React.FC<Props> = ({ list, dispatch }) => {
+const List: React.FC<Props> = ({ status }) => {
+  const [page, setPage] = useState(0);
+
+  const { data, isFetching } = useBacklogQuery({ status, page });
+  const { updateBacklogMutation } = useBacklogMutations();
+
   const [, drop] = useDrop({
     accept: "GAME",
     drop: (game: Backlog) => {
-      onDrop(game, list.status);
+      onDrop(game, status);
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
@@ -21,20 +26,23 @@ const List: React.FC<Props> = ({ list, dispatch }) => {
   });
 
   return (
-    <div className="backlog-card">
-      <h5 className="text-start mb-4">{getUserFriendlyTitle(list.status)}</h5>
+    <div className="backlog-card col-4" ref={drop}>
+      <h5 className="text-start mb-4">{getUserFriendlyTitle(status)}</h5>
 
-      <GameContainer games={list.games} drop={drop} />
+      {!data || isFetching ? (
+        "Loading..."
+      ) : (
+        <GameContainer backlog={data.backlog} />
+      )}
     </div>
   );
 
   function onDrop(game: Backlog, status: Status) {
-    if (game.status !== status) {
-      dispatch({
-        type: "UPDATE_BACKLOG",
-        gameId: game.id,
-        status,
-      });
+    const currentStatus = game.status;
+    const nextStatus = status;
+
+    if (currentStatus !== nextStatus) {
+      updateBacklogMutation.mutate({ gameId: game.id, status: nextStatus });
     }
   }
 

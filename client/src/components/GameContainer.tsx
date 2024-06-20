@@ -1,16 +1,14 @@
 import { Game } from "./Game";
 import { Backlog } from "../types/Backlog.types";
-import { ConnectDropTarget } from "react-dnd";
 
 type Props = {
-  games: Backlog[];
-  drop: ConnectDropTarget;
+  backlog: Backlog[];
 };
 
-export function GameContainer({ games, drop }: Props) {
+export function GameContainer({ backlog }: Props) {
   return (
-    <div className="game-column" ref={drop}>
-      {games.map((game) => (
+    <div className="game-column">
+      {backlog.map((game) => (
         <Game key={game.id} game={game} />
       ))}
     </div>

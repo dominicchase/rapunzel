@@ -56,22 +56,4 @@ api.interceptors.response.use(
   }
 );
 
-export function getBacklog(params: {
-  userId: string;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
-  page?: number;
-  size?: number;
-}) {
-  const config: AxiosRequestConfig = {
-    params: {
-      userId: params.userId,
-      status: params.status,
-      page: params.page,
-      size: params.size,
-    },
-  };
-
-  return api.get("/backlog", config);
-}
-
 export default api;
