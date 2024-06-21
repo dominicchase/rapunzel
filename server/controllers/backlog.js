@@ -28,16 +28,10 @@ async function getBacklog(req, res) {
       (game) => game.status === status
     );
 
-    // TODO: sorting options
-
-    const sortedBacklog = filteredBacklog.sort((a, b) =>
-      a.name < b.name ? -1 : 1
-    );
-
     // pagination
     const start = page * size;
     const end = start + size;
-    const backlogSlice = sortedBacklog.slice(start, end);
+    const backlogSlice = filteredBacklog.slice(start, end);
 
     return res.json({
       backlog: backlogSlice,
@@ -86,8 +80,11 @@ async function addToBacklog(req, res) {
         .then(async (data) => {
           const game = data[0];
 
+          const nextIndex = backlog.userBacklog.length;
+
           backlog.userBacklog.push({
             ...game,
+            position: nextIndex,
             status,
             completedAt: status === "COMPLETED" ? Date.now() : null,
           });
@@ -153,12 +150,12 @@ async function removeFromBacklog(req, res) {
 
 async function updateBacklog(req, res) {
   try {
-    const { userId, gameId, status } = req.body;
+    const { userId, gameId, position, status } = req.body;
 
-    if (!userId || !gameId || !status) {
-      return res
-        .status(400)
-        .json({ message: "User ID, Game ID, and status are required" });
+    if (!userId || !gameId || position === undefined || !status) {
+      return res.status(400).json({
+        message: "User ID, Game ID, position, and status are required",
+      });
     }
 
     const validStatuses = ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"];
@@ -170,6 +167,10 @@ async function updateBacklog(req, res) {
 
     // Find the user's backlog document by userId
     let backlog = await Backlog.findOne({ userId });
+
+    if (position > backlog.userBacklog.length - 1) {
+      return res.status(400).json({ message: "Position out of bounds" });
+    }
 
     // If the backlog document doesn't exist, create a new one
     if (!backlog) {
@@ -185,35 +186,28 @@ async function updateBacklog(req, res) {
       return res.status(400).json({ message: "Game is not in backlog" });
     }
 
-    // Build the update object
-    const updateFields = {
-      "userBacklog.$.status": status,
-    };
-
-    switch (status) {
-      // case "IN_PROGRESS": {
-      //   updateFields["userBacklog.$.startedAt"] = Date.now();
-      //   updateFields["userBacklog.$.completedAt"] = null;
-      //   break;
-      // }
-
-      case "COMPLETED": {
-        updateFields["userBacklog.$.completedAt"] = Date.now();
-        break;
-      }
-
-      default: {
-        // updateFields["userBacklog.$.startedAt"] = null;
-        updateFields["userBacklog.$.completedAt"] = null;
-      }
+    if (position === existingGame.position && status === existingGame.status) {
+      return res.status(400).json({
+        message: `${existingGame.name} is already in position ${position}`,
+      });
     }
 
-    // update the specific game in the user's backlog
-    await Backlog.findOneAndUpdate(
-      { userId, "userBacklog.id": gameId },
-      { $set: updateFields },
-      { new: true }
-    );
+    // remove game from its current position
+    backlog.userBacklog.splice(existingGame.position, 1);
+
+    // insert game at the provided position
+    backlog.userBacklog.splice(position, 0, existingGame);
+
+    // Rebuild positions for all games in userBacklog
+    const rebuiltBacklog = backlog.userBacklog.map((game, index) => ({
+      ...game,
+      position: index,
+      ...(game.id === gameId && { status }),
+    }));
+
+    backlog.userBacklog = rebuiltBacklog;
+
+    await backlog.save();
 
     return res
       .status(200)

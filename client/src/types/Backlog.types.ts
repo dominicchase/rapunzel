@@ -7,6 +7,7 @@ export enum Status {
 }
 
 export type Backlog = Game & {
+  position: number;
   status: Status;
   completedAt: string | null;
 };
@@ -24,6 +25,7 @@ export type GetBacklogResponseBody = {
 
 export type UpdateBacklogRequestBody = {
   gameId: number;
+  position: number;
   status: Status;
 };
 

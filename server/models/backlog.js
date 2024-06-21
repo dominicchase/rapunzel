@@ -52,6 +52,10 @@ const backlogSchema = new mongoose.Schema({
           },
         },
       ],
+      position: {
+        type: Number,
+        required: true,
+      },
       status: {
         type: String,
         enum: ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"],
